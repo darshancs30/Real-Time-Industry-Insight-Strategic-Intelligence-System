@@ -93,6 +93,15 @@ Example listing (open the `screenshots/` directory to view images):
 
 - `screenshots/`
 
+To include screenshots in this README, add image files to the `screenshots/` folder and reference them like this:
+
+```markdown
+![Dashboard overview](screenshots/dashboard-overview.png)
+![Analytics view](screenshots/analytics.png)
+```
+
+Once you add real image files, the images will render here automatically. If you want, I can generate simple placeholder PNGs for you — would you like that?
+
 ## Git / GitHub recommendations
 
 - Ensure `.gitignore` contains at minimum:
