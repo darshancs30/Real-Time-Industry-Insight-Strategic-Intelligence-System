@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import "./App.css";
 
 const API_BASE = "http://localhost:8000";
 
@@ -9,7 +10,7 @@ function App() {
   const [error, setError] = useState(null);
   const [query, setQuery] = useState({
     keyword: "technology",
-    articles: 5,
+    articles: 8,
     start_date: "",
     end_date: "",
     date_mode: "daily",
@@ -25,6 +26,12 @@ function App() {
   const handleChange = (event) => {
     const { name, value } = event.target;
     setQuery((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const sentimentLabel = (score) => {
+    if (score > 0.1) return "Positive";
+    if (score < -0.1) return "Negative";
+    return "Neutral";
   };
 
   const fetchNews = async (event) => {
@@ -48,7 +55,7 @@ function App() {
 
       if (!response.ok) {
         const body = await response.text();
-        throw new Error(`Backend error: ${body}`);
+        throw new Error(body || "Backend error");
       }
 
       const data = await response.json();
@@ -60,166 +67,141 @@ function App() {
     }
   };
 
+  const downloadCsv = () => {
+    window.open(`${API_BASE}/download-csv`, "_blank");
+  };
+
   return (
-    <div style={{ maxWidth: 980, margin: "0 auto", padding: 24, fontFamily: "Inter, Arial, sans-serif" }}>
-      <header style={{ marginBottom: 32 }}>
-        <h1 style={{ margin: 0, fontSize: 36 }}>Real-Time Industry Insights</h1>
-        <p style={{ color: "#555", marginTop: 8 }}>{backendStatus}</p>
-      </header>
+    <div className="app-shell">
+      <div className="top-surface">
+        <div>
+          <p className="eyebrow">Strategic Intelligence</p>
+          <h1>Real-Time Industry Insights Dashboard</h1>
+          <p className="intro-text">
+            Analyze global news sentiment, forecast trends, and trigger automated
+            alerts from a modern intelligence control center.
+          </p>
+        </div>
 
-      <section style={{ marginBottom: 32, padding: 24, border: "1px solid #ddd", borderRadius: 12, background: "#fff" }}>
-        <h2>Fetch latest news sentiment</h2>
-        <form onSubmit={fetchNews} style={{ display: "grid", gap: 16, marginTop: 16 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <label style={{ display: "grid", gap: 8 }}>
-              Keyword
-              <input
-                name="keyword"
-                value={query.keyword}
-                onChange={handleChange}
-                required
-                style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }}
-              />
-            </label>
-            <label style={{ display: "grid", gap: 8 }}>
-              Articles to fetch
-              <input
-                type="number"
-                name="articles"
-                min={1}
-                max={20}
-                value={query.articles}
-                onChange={handleChange}
-                style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }}
-              />
-            </label>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <label style={{ display: "grid", gap: 8 }}>
-              Start date
-              <input
-                type="date"
-                name="start_date"
-                value={query.start_date}
-                onChange={handleChange}
-                style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }}
-              />
-            </label>
-            <label style={{ display: "grid", gap: 8 }}>
-              End date
-              <input
-                type="date"
-                name="end_date"
-                value={query.end_date}
-                onChange={handleChange}
-                style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }}
-              />
-            </label>
-          </div>
-
-          <label style={{ display: "grid", gap: 8, maxWidth: 240 }}>
-            Date mode
-            <select
-              name="date_mode"
-              value={query.date_mode}
-              onChange={handleChange}
-              style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }}
-            >
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-              <option value="yearly">Yearly</option>
-            </select>
-          </label>
-
-          <button
-            type="submit"
-            disabled={loading}
-            style={{ padding: "12px 20px", borderRadius: 10, border: "none", background: "#007bff", color: "white", cursor: "pointer", width: 160 }}
-          >
-            {loading ? "Loading..." : "Fetch News"}
+        <div className="hero-actions">
+          <button onClick={fetchNews} disabled={loading} className="btn btn-primary">
+            {loading ? "Analyzing..." : "Run Analysis"}
           </button>
+          <button onClick={downloadCsv} className="btn btn-secondary">
+            Export Report
+          </button>
+        </div>
+      </div>
+
+      <div className="status-panel">
+        <div>
+          <span className="status-label">Backend status</span>
+          <p>{backendStatus}</p>
+        </div>
+        <div className="status-pill">{loading ? "Fetching..." : "Idle"}</div>
+      </div>
+
+      <section className="query-panel">
+        <form onSubmit={fetchNews} className="query-form">
+          <div className="form-grid">
+            <label>
+              Keyword
+              <input name="keyword" value={query.keyword} onChange={handleChange} required />
+            </label>
+            <label>
+              Articles
+              <input type="number" name="articles" min={1} max={20} value={query.articles} onChange={handleChange} />
+            </label>
+            <label>
+              Start date
+              <input type="date" name="start_date" value={query.start_date} onChange={handleChange} />
+            </label>
+            <label>
+              End date
+              <input type="date" name="end_date" value={query.end_date} onChange={handleChange} />
+            </label>
+            <label>
+              Date mode
+              <select name="date_mode" value={query.date_mode} onChange={handleChange}>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+              </select>
+            </label>
+          </div>
+          <div className="query-submit">
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? "Fetching insights..." : "Fetch News Sentiment"}
+            </button>
+          </div>
         </form>
       </section>
 
-      {error && (
-        <div style={{ marginBottom: 24, padding: 16, borderRadius: 10, background: "#ffe9e9", color: "#a00" }}>
-          <strong>Error:</strong> {error}
-        </div>
-      )}
+      {error && <div className="error-banner">{error}</div>}
 
       {result && (
-        <section style={{ display: "grid", gap: 24, marginBottom: 32 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
+        <>
+          <section className="metric-grid">
             {Object.entries(result.kpis || {}).map(([label, value]) => (
-              <div key={label} style={{ padding: 16, borderRadius: 12, background: "#fff", border: "1px solid #ddd" }}>
-                <div style={{ fontSize: 14, color: "#777", textTransform: "capitalize" }}>{label.replace(/_/g, " ")}</div>
-                <div style={{ fontSize: 24, fontWeight: 700, marginTop: 8 }}>{typeof value === "number" ? value.toFixed(2) : String(value)}</div>
+              <div key={label} className="metric-card">
+                <span className="metric-title">{label.replace(/_/g, " ")}</span>
+                <strong>{typeof value === "number" ? value.toFixed(2) : String(value)}</strong>
               </div>
             ))}
+          </section>
+
+          <div className="details-grid">
+            <div className="panel">
+              <h2>Forecast</h2>
+              {result.forecast_data?.length ? (
+                <ul className="forecast-list">
+                  {result.forecast_data.map((item, idx) => (
+                    <li key={idx}>
+                      <span>{item.date}</span>
+                      <strong>{item.prediction}</strong>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="muted">Forecast data is not available yet.</p>
+              )}
+            </div>
+
+            <div className="panel">
+              <h2>Alerts</h2>
+              <p className="muted">{result.alert_message || "No alerts triggered."}</p>
+            </div>
           </div>
 
-          <div style={{ padding: 16, borderRadius: 12, background: "#fff", border: "1px solid #ddd" }}>
-            <h3 style={{ marginTop: 0 }}>Forecast</h3>
-            {result.forecast_data && result.forecast_data.length > 0 ? (
-              <ul style={{ margin: 0, paddingLeft: 18 }}>
-                {result.forecast_data.map((item, index) => (
-                  <li key={index} style={{ marginBottom: 8 }}>
-                    {item.date}: {item.prediction} ({item.lower}–{item.upper})
+          <div className="article-panels">
+            <div className="panel article-panel">
+              <h2>Top Positive Articles</h2>
+              <ul>
+                {result.top_positive_articles?.map((article, idx) => (
+                  <li key={idx}>
+                    <a href={article.url} target="_blank" rel="noreferrer">
+                      {article.title}
+                    </a>
                   </li>
                 ))}
               </ul>
-            ) : (
-              <p style={{ margin: 0, color: "#555" }}>Forecast data is not available yet.</p>
-            )}
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <div style={{ padding: 16, borderRadius: 12, background: "#fff", border: "1px solid #ddd" }}>
-              <h3 style={{ marginTop: 0 }}>Top Positive Articles</h3>
-              {result.top_positive_articles?.length ? (
-                <ul style={{ margin: 0, paddingLeft: 18 }}>
-                  {result.top_positive_articles.map((item, index) => (
-                    <li key={index}>
-                      <a href={item.url} target="_blank" rel="noreferrer">{item.title}</a>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p style={{ margin: 0, color: "#555" }}>No positive articles available.</p>
-              )}
             </div>
-
-            <div style={{ padding: 16, borderRadius: 12, background: "#fff", border: "1px solid #ddd" }}>
-              <h3 style={{ marginTop: 0 }}>Top Negative Articles</h3>
-              {result.top_negative_articles?.length ? (
-                <ul style={{ margin: 0, paddingLeft: 18 }}>
-                  {result.top_negative_articles.map((item, index) => (
-                    <li key={index}>
-                      <a href={item.url} target="_blank" rel="noreferrer">{item.title}</a>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p style={{ margin: 0, color: "#555" }}>No negative articles available.</p>
-              )}
+            <div className="panel article-panel">
+              <h2>Top Negative Articles</h2>
+              <ul>
+                {result.top_negative_articles?.map((article, idx) => (
+                  <li key={idx}>
+                    <a href={article.url} target="_blank" rel="noreferrer">
+                      {article.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
-
-          {result.alert_message && (
-            <div style={{ padding: 16, borderRadius: 12, background: "#fff8e1", border: "1px solid #f0c14b" }}>
-              <h3 style={{ marginTop: 0 }}>Alerts</h3>
-              <pre style={{ margin: 0, whiteSpace: "pre-wrap", color: "#333" }}>{result.alert_message}</pre>
-            </div>
-          )}
-        </section>
+        </>
       )}
-
-      <footer style={{ color: "#777", fontSize: 14 }}>
-        <p>Backend: {backendStatus}</p>
-        <p>Use the form above to fetch news sentiment from the FastAPI backend.</p>
-      </footer>
     </div>
   );
 }
